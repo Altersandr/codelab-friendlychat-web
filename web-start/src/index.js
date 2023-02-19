@@ -166,12 +166,10 @@ async function saveMessagingDeviceToken() {
     const currentToken = await getToken(getMessaging());
     if (currentToken) {
       console.log("Got FCM device token:", currentToken);
-
       const tokenRef = doc(getFirestore(), "fcmTokens", currentToken);
       await setDoc(tokenRef, {
         uid: getAuth().currentUser.uid,
       });
-
       onMessage(getMessaging(), (message) => {
         console.log(
           "New foreground notification from Firebase Messaging!",
@@ -182,13 +180,21 @@ async function saveMessagingDeviceToken() {
       requestNotificationsPermissions();
     }
   } catch (error) {
-    console.error("Unable to get messaging token.".error);
+    console.error("Unable to get messaging token.", error);
   }
   // TODO 10: Save the device token in Cloud Firestore
 }
 
 // Requests permissions to show notifications.
 async function requestNotificationsPermissions() {
+  console.log("Requesting notifications permission...");
+  const permission = await Notification.requestPermission();
+  if (permission === "granted") {
+    console.log("Notification permission granted.");
+    await saveMessagingDeviceToken();
+  } else {
+    console.log("Unable to get permission to notify");
+  }
   // TODO 11: Request permissions to send notifications.
 }
 
@@ -433,6 +439,7 @@ mediaCaptureElement.addEventListener("change", onMediaFileSelected);
 const firebaseAppConfig = getFirebaseConfig();
 // TODO 0: Initialize Firebase
 initializeApp(firebaseAppConfig);
+getPerformance();
 // TODO 12: Initialize Firebase Performance Monitoring
 
 initFirebaseAuth();
